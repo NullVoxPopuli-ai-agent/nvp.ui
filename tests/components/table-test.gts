@@ -4,9 +4,26 @@ import { setupRenderingTest } from "ember-qunit";
 
 import { Table } from "#src/index.ts";
 
-const rows = [
+import type { TOC } from "@ember/component/template-only";
+import type { CellSignature, SortItem, TableColumn } from "#src/index.ts";
+
+interface Fruit {
+  name: string;
+  count: number;
+}
+
+const rows: Fruit[] = [
   { name: "Apple", count: 3 },
   { name: "Banana", count: 12 },
+];
+
+const CountCell: TOC<CellSignature<Fruit>> = <template>
+  <strong>{{@row.data.count}}</strong>
+</template>;
+
+const columns: TableColumn<Fruit>[] = [
+  { key: "name", name: "Name" },
+  { key: "count", name: "Count", align: "end", nowrap: true, Cell: CountCell },
 ];
 
 module("Table", function (hooks) {
@@ -14,96 +31,97 @@ module("Table", function (hooks) {
 
   test("renders a head, rows, cells, and a hidden caption", async function (assert) {
     await render(
-      <template>
-        <Table @caption="Fruit">
-          <:head as |h|>
-            <h.Cell>Name</h.Cell>
-            <h.Cell @align="end">Count</h.Cell>
-          </:head>
-          <:body as |b|>
-            {{#each rows as |row|}}
-              <b.Row as |r|>
-                <r.Cell>{{row.name}}</r.Cell>
-              </b.Row>
-            {{/each}}
-          </:body>
-        </Table>
-      </template>,
+      <template><Table @caption="Fruit" @columns={{columns}} @data={{rows}} /></template>,
     );
 
     assert.dom("table").exists();
     assert.dom("caption").hasText("Fruit");
     assert.dom("caption").hasClass("nvp__table__caption--hidden");
     assert.dom("thead th").exists({ count: 2 });
+    assert.dom("thead th:nth-child(1)").hasText("Name");
     assert.dom("thead th:nth-child(2)").hasAttribute("data-align", "end");
     assert.dom("tbody tr").exists({ count: 2 });
+    assert.dom("tbody tr:first-child td:first-child").hasText("Apple");
   });
 
-  test("rows yield cells and an actions cell", async function (assert) {
-    await render(
-      <template>
-        <Table>
-          <:body as |b|>
-            {{#each rows as |row|}}
-              <b.Row as |r|>
-                <r.Cell @nowrap={{true}}>{{row.name}}</r.Cell>
-                <r.Cell @align="end">{{row.count}}</r.Cell>
-                <r.Actions><button type="button">Edit</button></r.Actions>
-              </b.Row>
-            {{/each}}
-          </:body>
-        </Table>
-      </template>,
-    );
+  test("a column with a Cell renders it; the rest render the value", async function (assert) {
+    await render(<template><Table @columns={{columns}} @data={{rows}} /></template>);
 
-    assert.dom("tbody tr:first-child td").exists({ count: 3 });
-    assert.dom("tbody tr:first-child td:first-child").hasAttribute("data-nowrap");
+    assert.dom("tbody tr:first-child td:nth-child(2) strong").hasText("3");
     assert.dom("tbody tr:first-child td:nth-child(2)").hasAttribute("data-align", "end");
-    assert.dom("tbody tr:first-child td:nth-child(3)").hasClass("nvp__table__actions");
-    assert.dom("tbody tr:first-child td:nth-child(3) button").hasText("Edit");
+    assert.dom("tbody tr:first-child td:nth-child(2)").hasAttribute("data-nowrap");
+    assert.dom("tbody tr:first-child td:first-child strong").doesNotExist();
   });
 
-  test("a sortable header is a button with aria-sort", async function (assert) {
-    const onSort = () => assert.step("sort");
+  test("with @onSort, headers sort and carry aria-sort", async function (assert) {
+    const sorts: SortItem<Fruit>[] = [];
+    const onSort = (next: SortItem<Fruit>[]) =>
+      assert.step(next.map((s) => `${s.property}:${s.direction}`).join(",") || "none");
 
     await render(
       <template>
-        <Table>
-          <:head as |h|>
-            <h.Cell @sort="ascending" @onSort={{onSort}}>Name</h.Cell>
-            <h.Cell>Count</h.Cell>
-          </:head>
-        </Table>
+        <Table @columns={{columns}} @data={{rows}} @sorts={{sorts}} @onSort={{onSort}} />
       </template>,
     );
 
-    assert.dom("th:first-child").hasAttribute("aria-sort", "ascending");
+    assert.dom("th:first-child").hasAttribute("aria-sort", "none");
     assert.dom("th:first-child button").exists();
-    assert.dom("th:nth-child(2)").doesNotHaveAttribute("aria-sort");
-    assert.dom("th:nth-child(2) button").doesNotExist();
 
     await click("th:first-child button");
 
-    assert.verifySteps(["sort"]);
+    assert.verifySteps(["name:descending"]);
   });
 
-  test("@isEmpty shows the empty block instead of rows", async function (assert) {
+  test("without @onSort, headers are plain text", async function (assert) {
+    await render(<template><Table @columns={{columns}} @data={{rows}} /></template>);
+
+    assert.dom("th button").doesNotExist();
+  });
+
+  test("a column can opt out of sorting", async function (assert) {
+    const fixed: TableColumn<Fruit>[] = [
+      { key: "name", name: "Name", sortable: false },
+      { key: "count", name: "Count" },
+    ];
+    const onSort = () => {};
+
+    await render(
+      <template><Table @columns={{fixed}} @data={{rows}} @onSort={{onSort}} /></template>,
+    );
+
+    assert.dom("th:first-child button").doesNotExist();
+    assert.dom("th:nth-child(2) button").exists();
+  });
+
+  test("the afterRow block renders under each row with the column count", async function (assert) {
     await render(
       <template>
-        <Table @isEmpty={{true}}>
-          <:head as |h|>
-            <h.Cell>Name</h.Cell>
-          </:head>
-          <:body as |b|>
-            <b.Row as |r|>
-              <r.Cell>never</r.Cell>
-            </b.Row>
-          </:body>
+        <Table @columns={{columns}} @data={{rows}}>
+          <:afterRow as |row count|>
+            <tr class="detail"><td colspan={{count}}>{{row.data.name}} detail</td></tr>
+          </:afterRow>
+        </Table>
+      </template>,
+    );
+
+    assert.dom("tbody tr").exists({ count: 4 });
+    assert.dom("tbody tr.detail").exists({ count: 2 });
+    assert.dom("tbody tr:nth-child(2) td").hasAttribute("colspan", "2");
+    assert.dom("tbody tr:nth-child(2)").hasText("Apple detail");
+  });
+
+  test("no data shows the empty block instead of rows", async function (assert) {
+    const none: Fruit[] = [];
+
+    await render(
+      <template>
+        <Table @columns={{columns}} @data={{none}}>
           <:empty>Nothing here yet.</:empty>
         </Table>
       </template>,
     );
 
+    assert.dom("thead th").exists({ count: 2 });
     assert.dom("tbody").doesNotExist();
     assert.dom(".nvp__table__empty").hasText("Nothing here yet.");
     assert.dom(".nvp__table").hasAttribute("data-empty");
@@ -112,12 +130,13 @@ module("Table", function (hooks) {
   test("the footer block renders below the table", async function (assert) {
     await render(
       <template>
-        <Table @dense={{true}} @striped={{true}} @stickyHeader={{true}}>
-          <:body as |b|>
-            <b.Row as |r|>
-              <r.Cell>one</r.Cell>
-            </b.Row>
-          </:body>
+        <Table
+          @columns={{columns}}
+          @data={{rows}}
+          @dense={{true}}
+          @striped={{true}}
+          @stickyHeader={{true}}
+        >
           <:footer>Page 1 of 3</:footer>
         </Table>
       </template>,
