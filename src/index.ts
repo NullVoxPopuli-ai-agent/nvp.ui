@@ -1,11 +1,4 @@
-export type {
-  PageLink,
-  PageSlot,
-  PaginationLinks,
-  PlaceholderPageLink,
-  RealPageLink,
-} from "./components/-private/page-links.ts";
-export { pageLinks, pageSlots } from "./components/-private/page-links.ts";
+export { pageSlots } from "./components/-private/page-slots.ts";
 export { ApplicationShell } from "./components/application-shell.gts";
 export { Avatar, AvatarGroup } from "./components/avatar.gts";
 export { BrowserWindow } from "./components/browser-window.gts";

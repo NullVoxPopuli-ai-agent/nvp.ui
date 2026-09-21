@@ -29,6 +29,7 @@
   border: var(--border-width) var(--border-style) transparent;
   background: none;
   color: var(--color-text);
+  text-decoration: none;
   font: inherit;
   line-height: var(--line-height);
   cursor: pointer;
@@ -49,7 +50,7 @@
     font-weight: 600;
   }
 
-  &:disabled {
+  &[aria-disabled="true"] {
     cursor: default;
     opacity: 0.5;
   }

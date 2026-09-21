@@ -21,28 +21,40 @@ import type { SortItem } from "@universal-ember/table/plugins/data-sorting";
 export type Align = "start" | "center" | "end";
 
 /**
- * A column, as `@universal-ember/table` defines it (`key`, `name`,
- * `value`, `Cell`), plus how nvp.ui lays it out. Extra keys are kept,
- * so a `Cell` component can read what it needs from `@column.config`.
+ * A column.
+ *
+ * The `@universal-ember/table` config, plus how nvp.ui lays it out:
+ * - `key`, `name`, `value`, `Cell` are the upstream config
+ * - `align`, `nowrap`, `sortable`, `sortProperty` are layout
+ *
+ * Extra keys are kept.
+ * A `Cell` component reads them from `@column.config`.
  */
 export interface TableColumn<T = unknown> extends ColumnConfig<T> {
   /**
-   * Text alignment of the column. Numbers usually want `end`.
+   * Text alignment of the column.
+   * Numbers usually want `end`.
    *
    * Default: start
    */
   align?: Align;
   /**
-   * Keeps the column's cells on one line. For ids, dates, short codes.
+   * Keeps the column's cells on one line.
+   *
+   * For ids, dates, short codes.
    */
   nowrap?: boolean;
   /**
-   * Whether the header sorts. Only matters when the table has `@onSort`;
-   * then every column sorts unless it says `false`.
+   * Whether the header sorts.
+   *
+   * Only matters when the table has `@onSort`.
+   * Then every column sorts unless it says `false`.
    */
   sortable?: boolean;
   /**
-   * The sort key sent to `@onSort`, when it is not the column `key`.
+   * The sort key sent to `@onSort`.
+   *
+   * Only needed when it is not the column `key`.
    */
   sortProperty?: string;
   [extra: string]: unknown;
@@ -67,8 +79,9 @@ export interface Signature<T = unknown> {
     columns: TableColumn<T>[];
     data: T[];
     /**
-     * The table's accessible name, rendered as a `<caption>`. Hidden
-     * unless `@showCaption` is set.
+     * The table's accessible name, rendered as a `<caption>`.
+     *
+     * Hidden unless `@showCaption` is set.
      */
     caption?: string;
     showCaption?: boolean;
@@ -77,13 +90,16 @@ export interface Signature<T = unknown> {
      */
     dense?: boolean;
     /**
-     * The current sort, one entry per sorted column. The owner sorts
-     * the data; the table only shows the state and asks for changes.
+     * The current sort, one entry per sorted column.
+     *
+     * The owner sorts the data.
+     * The table only shows the state and asks for changes.
      */
     sorts?: SortItem<T>[];
     /**
-     * Called with the next sort when a header is clicked. Providing
-     * this makes the headers sortable.
+     * Called with the next sort when a header is clicked.
+     *
+     * Providing this makes the headers sortable.
      */
     onSort?: (sorts: SortItem<T>[]) => void;
   };
@@ -112,7 +128,8 @@ function nowrapOf<T>(column: Column<T>) {
 }
 
 /**
- * `Cell` is typed loosely upstream; this is what the invocation needs.
+ * `Cell` is typed loosely upstream.
+ * This is what the invocation needs.
  */
 function cellOf<T>(column: Column<T>) {
   return column.Cell as unknown as ComponentLike<CellSignature<T>> | undefined;
@@ -134,8 +151,9 @@ export class Table<T = unknown> extends Component<Signature<T>> {
   });
 
   /**
-   * Turns nvp.ui's `sortable` and `sortProperty` into the plugin's
-   * per-column options. Without `@onSort`, nothing sorts.
+   * Turns `sortable` and `sortProperty` into the plugin's per-column options.
+   *
+   * Without `@onSort`, nothing sorts.
    */
   withSorting = (column: TableColumn<T>): ColumnConfig<T> => {
     const isSortable = Boolean(this.args.onSort) && column.sortable !== false;
@@ -234,5 +252,3 @@ export class Table<T = unknown> extends Component<Signature<T>> {
     </div>
   </template>
 }
-
-export default Table;
