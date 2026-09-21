@@ -93,23 +93,6 @@ module("Table", function (hooks) {
     assert.dom("th:nth-child(2) button").exists();
   });
 
-  test("the afterRow block renders under each row with the column count", async function (assert) {
-    await render(
-      <template>
-        <Table @columns={{columns}} @data={{rows}}>
-          <:afterRow as |row count|>
-            <tr class="detail"><td colspan={{count}}>{{row.data.name}} detail</td></tr>
-          </:afterRow>
-        </Table>
-      </template>,
-    );
-
-    assert.dom("tbody tr").exists({ count: 4 });
-    assert.dom("tbody tr.detail").exists({ count: 2 });
-    assert.dom("tbody tr:nth-child(2) td").hasAttribute("colspan", "2");
-    assert.dom("tbody tr:nth-child(2)").hasText("Apple detail");
-  });
-
   test("no data shows the empty block instead of rows", async function (assert) {
     const none: Fruit[] = [];
 
@@ -130,13 +113,7 @@ module("Table", function (hooks) {
   test("the footer block renders below the table", async function (assert) {
     await render(
       <template>
-        <Table
-          @columns={{columns}}
-          @data={{rows}}
-          @dense={{true}}
-          @striped={{true}}
-          @stickyHeader={{true}}
-        >
+        <Table @columns={{columns}} @data={{rows}} @dense={{true}}>
           <:footer>Page 1 of 3</:footer>
         </Table>
       </template>,
@@ -144,7 +121,5 @@ module("Table", function (hooks) {
 
     assert.dom(".nvp__table__footer").hasText("Page 1 of 3");
     assert.dom(".nvp__table").hasAttribute("data-dense");
-    assert.dom(".nvp__table").hasAttribute("data-striped");
-    assert.dom(".nvp__table").hasAttribute("data-sticky-header");
   });
 });

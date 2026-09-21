@@ -3,7 +3,6 @@
   --table-cell-padding-x: var(--padding-3);
   --table-border-color: var(--border-color);
   --table-header-color: color-mix(in oklab, var(--color-text) 70%, transparent);
-  --table-stripe-color: color-mix(in oklab, var(--color-text) 4%, transparent);
   --table-hover-color: color-mix(in oklab, var(--color-primary) 12%, transparent);
 
   display: grid;
@@ -14,11 +13,6 @@
     --table-cell-padding-y: var(--padding-1);
     --table-cell-padding-x: var(--padding-2);
   }
-}
-
-.nvp__table__scroll {
-  width: 100%;
-  overflow-x: auto;
 }
 
 .nvp__table__table {
@@ -47,6 +41,7 @@
   text-align: start;
   border-bottom: var(--border-width) var(--border-style) var(--table-border-color);
   vertical-align: top;
+  overflow-wrap: anywhere;
 
   &[data-align="end"] {
     text-align: end;
@@ -70,7 +65,7 @@
   white-space: nowrap;
 }
 
-.nvp__table[data-sticky-header] .nvp__table__head {
+.nvp__table__head {
   position: sticky;
   top: 0;
   background: var(--surface-background-color, var(--color-page-background));
@@ -118,10 +113,6 @@
 
 .nvp__table__body .nvp__table__row:last-child .nvp__table__cell {
   border-bottom: none;
-}
-
-.nvp__table[data-striped] .nvp__table__row:nth-child(even) {
-  background: var(--table-stripe-color);
 }
 
 .nvp__table__row:hover {

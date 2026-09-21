@@ -77,14 +77,6 @@ export interface Signature<T = unknown> {
      */
     dense?: boolean;
     /**
-     * Alternate row backgrounds.
-     */
-    striped?: boolean;
-    /**
-     * Keeps the header row in view while the table scrolls.
-     */
-    stickyHeader?: boolean;
-    /**
      * The current sort, one entry per sorted column. The owner sorts
      * the data; the table only shows the state and asks for changes.
      */
@@ -96,11 +88,6 @@ export interface Signature<T = unknown> {
     onSort?: (sorts: SortItem<T>[]) => void;
   };
   Blocks: {
-    /**
-     * Rendered after each row, inside the body. For a row's detail or
-     * editor. Receives the row and the column count, for `colspan`.
-     */
-    afterRow: [row: Row<T>, columnCount: number];
     /**
      * Shown instead of the rows when there is no data.
      */
@@ -172,79 +159,66 @@ export class Table<T = unknown> extends Component<Signature<T>> {
     return this.args.data.length === 0;
   }
 
-  get columnCount() {
-    return this.table.columns.length;
-  }
-
   <template>
-    <div
-      class="nvp__table"
-      data-dense={{@dense}}
-      data-striped={{@striped}}
-      data-sticky-header={{@stickyHeader}}
-      data-empty={{this.isEmpty}}
-    >
-      <div class="nvp__table__scroll">
-        <table class="nvp__table__table" {{this.table.modifiers.container}} ...attributes>
-          {{#if @caption}}
-            <caption
-              class={{unless @showCaption "nvp__table__caption--hidden"}}
-            >{{@caption}}</caption>
-          {{/if}}
+    <div class="nvp__table" data-dense={{@dense}} data-empty={{this.isEmpty}}>
+      <table class="nvp__table__table" {{this.table.modifiers.container}} ...attributes>
+        {{#if @caption}}
+          <caption
+            class={{unless @showCaption "nvp__table__caption--hidden"}}
+          >{{@caption}}</caption>
+        {{/if}}
 
-          <thead class="nvp__table__head">
-            <tr>
-              {{#each this.table.columns as |column|}}
-                <th
-                  scope="col"
-                  class="nvp__table__header-cell"
-                  data-align={{alignOf column}}
-                  {{this.table.modifiers.columnHeader column}}
-                >
-                  {{#if (isSortable column)}}
-                    <button
-                      type="button"
-                      class="nvp__table__sort"
-                      data-sort={{sortDirection column}}
-                      {{on "click" (fn sort column)}}
-                    >
-                      {{column.name}}
-                      <span class="nvp__table__sort-icon" aria-hidden="true"></span>
-                    </button>
-                  {{else}}
+        <thead class="nvp__table__head">
+          <tr>
+            {{#each this.table.columns as |column|}}
+              <th
+                scope="col"
+                class="nvp__table__header-cell"
+                data-align={{alignOf column}}
+                {{this.table.modifiers.columnHeader column}}
+              >
+                {{#if (isSortable column)}}
+                  <button
+                    type="button"
+                    class="nvp__table__sort"
+                    data-sort={{sortDirection column}}
+                    {{on "click" (fn sort column)}}
+                  >
                     {{column.name}}
-                  {{/if}}
-                </th>
-              {{/each}}
-            </tr>
-          </thead>
+                    <span class="nvp__table__sort-icon" aria-hidden="true"></span>
+                  </button>
+                {{else}}
+                  {{column.name}}
+                {{/if}}
+              </th>
+            {{/each}}
+          </tr>
+        </thead>
 
-          {{#unless this.isEmpty}}
-            <tbody class="nvp__table__body">
-              {{#each this.table.rows as |row|}}
-                <tr class="nvp__table__row" {{this.table.modifiers.row row}}>
-                  {{#each this.table.columns as |column|}}
-                    <td
-                      class="nvp__table__cell"
-                      data-align={{alignOf column}}
-                      data-nowrap={{nowrapOf column}}
-                    >
-                      {{#let (cellOf column) as |Cell|}}
-                        {{#if Cell}}
-                          <Cell @column={{column}} @row={{row}} />
-                        {{else}}
-                          {{column.getValueForRow row}}
-                        {{/if}}
-                      {{/let}}
-                    </td>
-                  {{/each}}
-                </tr>
-                {{yield row this.columnCount to="afterRow"}}
-              {{/each}}
-            </tbody>
-          {{/unless}}
-        </table>
-      </div>
+        {{#unless this.isEmpty}}
+          <tbody class="nvp__table__body">
+            {{#each this.table.rows as |row|}}
+              <tr class="nvp__table__row" {{this.table.modifiers.row row}}>
+                {{#each this.table.columns as |column|}}
+                  <td
+                    class="nvp__table__cell"
+                    data-align={{alignOf column}}
+                    data-nowrap={{nowrapOf column}}
+                  >
+                    {{#let (cellOf column) as |Cell|}}
+                      {{#if Cell}}
+                        <Cell @column={{column}} @row={{row}} />
+                      {{else}}
+                        {{column.getValueForRow row}}
+                      {{/if}}
+                    {{/let}}
+                  </td>
+                {{/each}}
+              </tr>
+            {{/each}}
+          </tbody>
+        {{/unless}}
+      </table>
 
       {{#if this.isEmpty}}
         <div class="nvp__table__empty">

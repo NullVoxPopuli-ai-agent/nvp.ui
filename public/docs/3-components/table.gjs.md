@@ -1,6 +1,6 @@
 # Table
 
-A styled data table on top of [`@universal-ember/table`](https://github.com/universal-ember/table), which supplies the accessible structure, the column and row model, and the plugins. Columns are configuration; rows come from data. The table scrolls sideways on narrow screens instead of squashing its columns.
+A styled data table on top of [`@universal-ember/table`](https://github.com/universal-ember/table), which supplies the accessible structure, the column and row model, and the plugins. Columns are configuration; rows come from data. The header row stays in view while the page scrolls. Long cell content wraps, so the table never scrolls sideways.
 
 ```gjs live no-shadow
 import { Table } from "nvp.ui/table";
@@ -25,7 +25,7 @@ const columns = [
 ];
 
 <template>
-  <Table @caption="Fruit in stock" @columns={{columns}} @data={{fruit}} @striped={{true}}>
+  <Table @caption="Fruit in stock" @columns={{columns}} @data={{fruit}}>
     <:footer>3 of 3 shown</:footer>
   </Table>
 </template>
@@ -97,32 +97,6 @@ export default class Demo extends Component {
 }
 ```
 
-## Rows with a detail
-
-The `afterRow` block renders after every row, inside the body, with the row and the column count. Use it for an expanded detail or an inline editor.
-
-```gjs live no-shadow
-import { Table } from "nvp.ui/table";
-
-const fruit = [
-  { name: "Apple", count: 3, note: "Crisp." },
-  { name: "Banana", count: 12, note: "Bruises easily." },
-];
-
-const columns = [
-  { key: "name", name: "Name" },
-  { key: "count", name: "Count", align: "end" },
-];
-
-<template>
-  <Table @columns={{columns}} @data={{fruit}}>
-    <:afterRow as |row count|>
-      <tr><td colspan={{count}}><em>{{row.data.note}}</em></td></tr>
-    </:afterRow>
-  </Table>
-</template>
-```
-
 ## Empty
 
 With no data, the rows are not rendered and the `empty` block takes their place. The header stays, so the columns are still visible.
@@ -147,36 +121,32 @@ const none = [];
 
 ### Arguments
 
-| Argument        | Type            |                                                     |
-| --------------- | --------------- | --------------------------------------------------- |
-| `@columns`      | `TableColumn[]` | see Columns                                         |
-| `@data`         | `T[]`           | one row per item                                    |
-| `@caption`      | `string`        | the accessible name, rendered as a `<caption>`      |
-| `@showCaption`  | `boolean`       | show the caption instead of hiding it visually      |
-| `@dense`        | `boolean`       | tighter cell padding                                |
-| `@striped`      | `boolean`       | alternate row backgrounds                           |
-| `@stickyHeader` | `boolean`       | keep the header row in view while the table scrolls |
-| `@sorts`        | `SortItem[]`    | the current sort                                    |
-| `@onSort`       | `function`      | receives the next sort; makes the headers sortable  |
+| Argument       | Type            |                                                    |
+| -------------- | --------------- | -------------------------------------------------- |
+| `@columns`     | `TableColumn[]` | see Columns                                        |
+| `@data`        | `T[]`           | one row per item                                   |
+| `@caption`     | `string`        | the accessible name, rendered as a `<caption>`     |
+| `@showCaption` | `boolean`       | show the caption instead of hiding it visually     |
+| `@dense`       | `boolean`       | tighter cell padding                               |
+| `@sorts`       | `SortItem[]`    | the current sort                                   |
+| `@onSort`      | `function`      | receives the next sort; makes the headers sortable |
 
 ### Blocks
 
-| Block       | Yields         |                                 |
-| ----------- | -------------- | ------------------------------- |
-| `:afterRow` | `row`, `count` | after each row, inside the body |
-| `:empty`    |                | shown when there is no data     |
-| `:footer`   |                | below the table                 |
+| Block     | Yields |                             |
+| --------- | ------ | --------------------------- |
+| `:empty`  |        | shown when there is no data |
+| `:footer` |        | below the table             |
 
 ### CSS API
 
-| Variable                 |                                     |
-| ------------------------ | ----------------------------------- |
-| `--table-cell-padding-y` | vertical cell padding               |
-| `--table-cell-padding-x` | horizontal cell padding             |
-| `--table-border-color`   | row separator color                 |
-| `--table-header-color`   | header text color                   |
-| `--table-stripe-color`   | even row background with `@striped` |
-| `--table-hover-color`    | row background on hover             |
+| Variable                 |                         |
+| ------------------------ | ----------------------- |
+| `--table-cell-padding-y` | vertical cell padding   |
+| `--table-cell-padding-x` | horizontal cell padding |
+| `--table-border-color`   | row separator color     |
+| `--table-header-color`   | header text color       |
+| `--table-hover-color`    | row background on hover |
 
 ## Installation
 
