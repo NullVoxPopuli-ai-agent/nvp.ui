@@ -21,8 +21,9 @@
   display: inline-flex;
   align-items: center;
   gap: var(--gap-1);
-  min-width: 2rem;
+  min-width: 2.5rem;
   justify-content: center;
+  font-variant-numeric: tabular-nums;
   padding: var(--pagination-link-padding);
   border-radius: var(--radius);
   border: var(--border-width) var(--border-style) transparent;
@@ -52,13 +53,6 @@
     cursor: default;
     opacity: 0.5;
   }
-}
-
-.nvp__pagination__gap {
-  display: inline-block;
-  min-width: 2rem;
-  text-align: center;
-  opacity: 0.6;
 }
 
 @media (max-width: 480px) {
